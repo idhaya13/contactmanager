@@ -7,94 +7,74 @@
   <link rel="stylesheet" href="/static/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f8fafc;
-      padding: 20px;
-    }
+    body { font-family: Arial, sans-serif; background: #f8fafc; padding: 20px; }
+    h1 { color: #2563eb; margin-bottom: 20px; }
+    .contact-container { display: flex; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
+    .details { position: relative; background: #fff; padding: 20px; border-radius: 10px; flex: 1 1 300px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .details p { margin: 8px 0; }
+    .chart-container { width: 200px; height: 200px; flex-shrink: 0; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    a { text-decoration: none; color: #1d4ed8; display: inline-block; margin-top: 20px; }
+    #draftEmailBtn { margin-top: 20px; padding: 10px 15px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    #draftEmailBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+    #draftEmailOutput { width: 100%; margin-top: 15px; display: none; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: monospace; white-space: pre-wrap; }
+    #emailInput { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 10px; font-size: 16px; }
 
-    h1 {
-      color: #2563eb;
-      margin-bottom: 20px;
-    }
-
-    .contact-container {
-      display: flex;
-      align-items: flex-start;
-      gap: 40px;
-      flex-wrap: wrap;
-    }
-
-    .details {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      flex: 1 1 300px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    .details p {
-      margin: 8px 0;
-    }
-
-    .chart-container {
-      width: 200px;
-      height: 200px;
-      flex-shrink: 0;
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    a {
-      text-decoration: none;
-      color: #1d4ed8;
-      display: inline-block;
-      margin-top: 20px;
-    }
-
-    #draftEmailBtn {
-      margin-top: 20px;
-      padding: 10px 15px;
-      background-color: #2563eb;
+    /* Edit button top-right */
+    #editBtn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #2563eb;
       color: white;
       border: none;
-      border-radius: 6px;
+      padding: 8px 12px;
+      border-radius: 5px;
       cursor: pointer;
     }
 
-    #draftEmailBtn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    #draftEmailOutput {
-      width: 100%;
-      margin-top: 15px;
+    /* Modal Styles */
+    .modal {
       display: none;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #cbd5e1;
-      font-family: monospace;
-      white-space: pre-wrap;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center; align-items: center;
     }
-
-    #emailInput {
+    .modal-content {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .modal-content input, .modal-content textarea {
       width: 100%;
+      margin-bottom: 10px;
       padding: 8px;
       border-radius: 6px;
       border: 1px solid #cbd5e1;
-      margin-top: 10px;
-      font-size: 16px;
     }
+    .modal-buttons {
+      text-align: right;
+      margin-top: 15px;
+    }
+    .modal-buttons button {
+      padding: 8px 14px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .save-btn { background: #16a34a; color: white; }
+    .discard-btn { background: #dc2626; color: white; }
   </style>
 </head>
 <body>
   <h1>{{ contact.name }}</h1>
-  
   <div class="contact-container">
     <div class="details">
+      <button id="editBtn">Edit</button>
       <p><strong>Company:</strong> {{ contact.company }}</p>
       <p><strong>Email:</strong> {{ contact.email }}</p>
       <p><strong>Phone:</strong> {{ contact.phone }}</p>
@@ -104,17 +84,10 @@
       <p><strong>Relationship Strength:</strong> {{ "%.2f"|format(contact.relationship) }}</p>
       <p>{{ suggestion }}</p>
 
-      <!-- Draft Email Button / Input -->
-      {% if contact.email %}
-        <button id="draftEmailBtn">Draft Email</button>
-      {% else %}
-        <input type="email" id="emailInput" placeholder="Enter email first" required>
-        <button id="draftEmailBtn">Draft Email</button>
-      {% endif %}
-
+      <input type="email" id="emailInput" placeholder="Enter email first" value="{{ contact.email }}">
+      <button id="draftEmailBtn">Draft Email</button>
       <textarea id="draftEmailOutput" rows="8"></textarea>
     </div>
-
     <div class="chart-container">
       <canvas id="relationshipChart"></canvas>
     </div>
@@ -122,65 +95,95 @@
 
   <a href="/contacts">← Back to Contacts</a>
 
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Contact</h3>
+      <input type="text" id="companyInput" placeholder="Company" value="{{ contact.company }}">
+      <input type="email" id="emailEditInput" placeholder="Email" value="{{ contact.email }}">
+      <input type="text" id="phoneInput" placeholder="Phone" value="{{ contact.phone }}">
+      <textarea id="notesInput" rows="4" placeholder="Notes">{{ contact.notes }}</textarea>
+      <input type="number" id="freqInput" placeholder="Frequency" value="{{ contact.frequency }}">
+      <input type="date" id="lastContactInput" value="{{ contact.last_contact.strftime('%Y-%m-%d') }}">
+      <div class="modal-buttons">
+        <button class="discard-btn" id="discardBtn">Discard</button>
+        <button class="save-btn" id="saveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Doughnut chart
-    const ctx = document.getElementById('relationshipChart').getContext('2d');
-    const data = {
-      labels: ['Strength', 'Remaining'],
-      datasets: [{
-        label: 'Relationship',
-        data: [{{ contact.relationship }}, {{ 1 - contact.relationship }}],
-        backgroundColor: ['#4CAF50', '#e0e0e0'],
-        borderWidth: 1
-      }]
-    };
-    const options = {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      cutout: '70%'
-    };
-    new Chart(ctx, {
+    // Chart
+    new Chart(document.getElementById('relationshipChart'), {
       type: 'doughnut',
-      data: data,
-      options: options
+      data: {
+        labels: ['Strength', 'Remaining'],
+        datasets: [{ data: [{{ contact.relationship }}, {{ 1 - contact.relationship }}],
+          backgroundColor: ['#4CAF50', '#e0e0e0'], borderWidth: 1 }]
+      },
+      options: { cutout: '70%', plugins: { legend: { display: false } } }
     });
 
-    // Draft email button functionality
-    document.getElementById("draftEmailBtn").addEventListener("click", async () => {
-        const btn = document.getElementById("draftEmailBtn");
-        btn.disabled = true;
-        btn.innerText = "Generating...";
+    // Modal behavior
+    const editBtn = document.getElementById("editBtn");
+    const modal = document.getElementById("editModal");
+    const discardBtn = document.getElementById("discardBtn");
+    const saveBtn = document.getElementById("saveBtn");
 
-        let url = `/contacts/{{ contact.id }}/draft_email`;
-        const formData = new FormData();
+    editBtn.addEventListener("click", () => modal.style.display = "flex");
+    discardBtn.addEventListener("click", () => modal.style.display = "none");
 
-        {% if not contact.email %}
-          const emailValue = document.getElementById("emailInput").value.trim();
-          if(!emailValue){
-              alert("Please enter an email first.");
-              btn.disabled = false;
-              btn.innerText = "Draft Email";
-              return;
-          }
-          formData.append("email", emailValue);
-        {% endif %}
+    saveBtn.addEventListener("click", async () => {
+      const contactId = {{ contact.id }};
+      const payload = new FormData();
+      payload.append("company", document.getElementById("companyInput").value);
+      payload.append("email", document.getElementById("emailEditInput").value);
+      payload.append("phone", document.getElementById("phoneInput").value);
+      payload.append("notes", document.getElementById("notesInput").value);
+      payload.append("frequency", document.getElementById("freqInput").value);
+      payload.append("last_contact", document.getElementById("lastContactInput").value);
 
-        try {
-          const response = await fetch(url, { method: 'POST', body: formData });
+      try {
+        const response = await fetch(`/contacts/${contactId}/edit`, { method: "POST", body: payload });
+        if (response.ok) {
+          alert("Contact updated successfully!");
+          location.reload();
+        } else {
           const data = await response.json();
-          const output = document.getElementById("draftEmailOutput");
-          if(data.draft_email){
-              output.style.display = "block";
-              output.value = data.draft_email;
-          } else if(data.error){
-              alert("Error: " + data.error);
-          }
-        } catch (error) {
-          alert("Failed to generate draft email: " + error);
+          alert("Error: " + data.error);
         }
+      } catch (err) {
+        alert("Failed to update contact: " + err);
+      }
+    });
 
-        btn.disabled = false;
-        btn.innerText = "Draft Email";
+    // Draft Email button
+    document.getElementById("draftEmailBtn").addEventListener("click", async () => {
+      const btn = document.getElementById("draftEmailBtn");
+      btn.disabled = true; btn.innerText = "Generating...";
+      const formData = new FormData();
+      const emailValue = document.getElementById("emailInput").value.trim();
+      if(!emailValue){
+        alert("Please enter an email first.");
+        btn.disabled = false; btn.innerText = "Draft Email";
+        return;
+      }
+      formData.append("email", emailValue);
+
+      try {
+        const response = await fetch(`/contacts/{{ contact.id }}/draft_email`, { method: 'POST', body: formData });
+        const data = await response.json();
+        const output = document.getElementById("draftEmailOutput");
+        if(data.draft_email){
+          output.style.display = "block";
+          output.value = data.draft_email;
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (error) {
+        alert("Failed to generate draft email: " + error);
+      }
+      btn.disabled = false; btn.innerText = "Draft Email";
     });
   </script>
 </body>

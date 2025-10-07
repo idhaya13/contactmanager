@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, Depends 
+from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -7,46 +7,27 @@ from datetime import datetime, timedelta
 from database import SessionLocal
 from models import Contact
 from collections import defaultdict
-from google import genai  # Gemini client
-import os
+from google import genai
 from google.genai import types
-
+import os
+from dotenv import load_dotenv
 
 app = FastAPI(title="Business AI Contact Manager")
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # -------------------------------
-# Gemini API key (freemium)
+# Gemini API setup
 # -------------------------------
-
-from dotenv import load_dotenv
-# Load variables from .env
 load_dotenv()
-
-# ✅ Preferred: read from GOOGLE_API_KEY environment variable
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-# ✅ Validate before initializing
 if not GOOGLE_API_KEY:
-    raise ValueError("❌ GOOGLE_API_KEY environment variable not set. Please set it before running.")
+    raise ValueError("❌ GOOGLE_API_KEY environment variable not set.")
 
-# ✅ Create the client
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-
-response = client.models.generate_content(
-    model="gemini-2.0-flash-001",
-    contents="Write a 1-sentence greeting message to test Gemini API."
-)
-
-print(response.text)
-
-
 # -------------------------------
-# Dependency: DB session
+# DB session dependency
 # -------------------------------
 def get_db():
     db = SessionLocal()
@@ -56,7 +37,7 @@ def get_db():
         db.close()
 
 # -------------------------------
-# Helper: Relationship score calculator
+# Helpers
 # -------------------------------
 def relationship_score(contact: Contact) -> float:
     days_since_contact = (datetime.now() - contact.last_contact).days
@@ -64,9 +45,6 @@ def relationship_score(contact: Contact) -> float:
     freq_score = min(contact.frequency / 12, 1)
     return round((0.6 * recency_score + 0.4 * freq_score), 2)
 
-# -------------------------------
-# Helper: Filter contacts by months
-# -------------------------------
 def filter_contacts(db: Session, months=None):
     query = db.query(Contact)
     if months and months != "all":
@@ -74,20 +52,14 @@ def filter_contacts(db: Session, months=None):
         query = query.filter(Contact.last_contact >= cutoff)
     return query.all()
 
-# -------------------------------
-# Helper: Group contacts by company
-# -------------------------------
 def group_by_company(contact_list):
+    from collections import defaultdict
     groups = defaultdict(list)
     for c in contact_list:
         company = c.company or "Independent / Unknown"
         groups[company].append(c)
     return groups
 
-# -------------------------------
-# Helper: Generate AI draft email via Gemini
-# -------------------------------
-# replacement function
 def generate_email_ai(contact: Contact) -> str:
     prompt_text = f"""
 Write a concise, professional, friendly follow-up email to {contact.name}.
@@ -98,7 +70,6 @@ Relationship score: {relationship_score(contact)}
 """
 
     try:
-        # Build a typed config object using the SDK's types
         gen_config = types.GenerateContentConfig(
             temperature=0.7,
             top_p=0.95,
@@ -106,37 +77,21 @@ Relationship score: {relationship_score(contact)}
             candidate_count=1,
             max_output_tokens=200,
         )
-
-        # Call the model with the typed config
         response = client.models.generate_content(
-            model="gemini-2.0-flash-001",   # use a model name available to you
+            model="gemini-2.0-flash-001",
             contents=prompt_text,
             config=gen_config,
         )
-
-        # Response can appear in different shapes; handle them defensively:
-        # 1) response.text (common and easiest)
         if getattr(response, "text", None):
             return response.text.strip()
-
-        # 2) response.candidates -> candidate.content.parts[0].text
         candidates = getattr(response, "candidates", None)
         if candidates:
-            try:
-                # candidate.content.parts is a list of Part objects
-                cand = candidates[0]
-                text = cand.content.parts[0].text
-                return text.strip()
-            except Exception:
-                # fallback to a string representation of the candidate
-                return str(candidates[0])
-
-        # 3) if nothing present, show a helpful fallback message
+            cand = candidates[0]
+            text = cand.content.parts[0].text
+            return text.strip()
         return "⚠️ AI returned no text output."
-
     except Exception as e:
-        # include the exception text to help debugging
-        return f"⚠️ AI generation failed: {str(e)}\n\nFallback message:\nHi {contact.name}, just checking in!"
+        return f"⚠️ AI generation failed: {str(e)}"
 
 # -------------------------------
 # Routes
@@ -146,92 +101,62 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/contacts", response_class=HTMLResponse)
-async def contact_list(
-    request: Request,
-    months: str = "all",
-    search: str = "",
-    db: Session = Depends(get_db),
-):
+async def contact_list(request: Request, months: str = "all", search: str = "", db: Session = Depends(get_db)):
     contacts = filter_contacts(db, months)
     if search:
         search_lower = search.lower()
-        contacts = [
-            c for c in contacts
-            if search_lower in c.name.lower() or (c.company and search_lower in c.company.lower())
-        ]
+        contacts = [c for c in contacts if search_lower in c.name.lower() or (c.company and search_lower in c.company.lower())]
     for c in contacts:
         c.relationship = relationship_score(c)
     contacts.sort(key=lambda c: (c.relationship, c.frequency), reverse=True)
     grouped = group_by_company(contacts)
-    return templates.TemplateResponse(
-        "contact_list.html",
-        {"request": request, "contacts_by_company": grouped, "months": months, "search": search},
-    )
-
-@app.get("/contacts/add", response_class=HTMLResponse)
-async def add_contact_form(request: Request):
-    return templates.TemplateResponse(
-        "add_contact.html",
-        {"request": request, "today": datetime.now().strftime("%Y-%m-%d")},
-    )
-
-@app.post("/contacts/add", response_class=HTMLResponse)
-async def add_contact(
-    request: Request,
-    name: str = Form(...),
-    company: str = Form("Independent / Unknown"),
-    email: str = Form(""),
-    phone: str = Form(""),
-    notes: str = Form(""),
-    frequency: int = Form(0),
-    last_contact: str = Form(datetime.now().strftime("%Y-%m-%d")),
-    db: Session = Depends(get_db),
-):
-    last_contact_dt = datetime.strptime(last_contact, "%Y-%m-%d")
-    new_contact = Contact(
-        name=name,
-        company=company,
-        email=email,
-        phone=phone,
-        notes=notes,
-        frequency=frequency,
-        last_contact=last_contact_dt,
-    )
-    db.add(new_contact)
-    db.commit()
-    db.refresh(new_contact)
-    return RedirectResponse("/contacts", status_code=303)
+    return templates.TemplateResponse("contact_list.html", {"request": request, "contacts_by_company": grouped, "months": months, "search": search})
 
 @app.get("/contacts/{contact_id}", response_class=HTMLResponse)
-async def contact_detail(
-    request: Request, contact_id: int, db: Session = Depends(get_db)
-):
+async def contact_detail(request: Request, contact_id: int, db: Session = Depends(get_db)):
     contact = db.query(Contact).filter(Contact.id == contact_id).first()
     if not contact:
         return HTMLResponse("Contact not found", status_code=404)
     contact.relationship = relationship_score(contact)
-    suggestion = (
-        "💡 Maintain contact regularly — relationship fading."
-        if contact.relationship < 0.5
-        else "✅ Strong relationship — keep up the engagement!"
-    )
-    return templates.TemplateResponse(
-        "contact_detail.html",
-        {"request": request, "contact": contact, "suggestion": suggestion},
-    )
+    suggestion = "💡 Maintain contact regularly — relationship fading." if contact.relationship < 0.5 else "✅ Strong relationship — keep up the engagement!"
+    return templates.TemplateResponse("contact_detail.html", {"request": request, "contact": contact, "suggestion": suggestion})
 
-# -------------------------------
-# AI Email Draft Route
-# -------------------------------
 @app.post("/contacts/{contact_id}/draft_email", response_class=JSONResponse)
 async def draft_email(contact_id: int, email: str = Form(None), db: Session = Depends(get_db)):
     contact = db.query(Contact).filter(Contact.id == contact_id).first()
     if not contact:
         return JSONResponse({"error": "Contact not found"}, status_code=404)
 
-    # Ensure email exists
-    if not email and not contact.email:
+    if email:
+        contact.email = email
+        db.commit()
+
+    if not contact.email:
         return JSONResponse({"error": "No email provided. Please enter an email first."}, status_code=400)
 
     draft_email_text = generate_email_ai(contact)
     return {"draft_email": draft_email_text}
+
+@app.post("/contacts/{contact_id}/edit", response_class=JSONResponse)
+async def edit_contact(
+    contact_id: int,
+    company: str = Form(None),
+    email: str = Form(None),
+    phone: str = Form(None),
+    notes: str = Form(None),
+    frequency: int = Form(None),
+    last_contact: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    contact = db.query(Contact).filter(Contact.id == contact_id).first()
+    if not contact:
+        return JSONResponse({"error": "Contact not found"}, status_code=404)
+    if company is not None: contact.company = company
+    if email is not None: contact.email = email
+    if phone is not None: contact.phone = phone
+    if notes is not None: contact.notes = notes
+    if frequency is not None: contact.frequency = int(frequency)
+    if last_contact is not None: contact.last_contact = datetime.strptime(last_contact, "%Y-%m-%d")
+    db.commit()
+    db.refresh(contact)
+    return JSONResponse({"success": True})
