@@ -1,0 +1,85 @@
+/* Base styles */
+body {
+  font-family: 'Arial', sans-serif;
+  background: #f0f4f8; /* softer background */
+  color: #1f2937; /* slightly darker for readability */
+  margin: 40px;
+  line-height: 1.6;
+}
+
+/* Headings */
+h1 {
+  color: #2563eb; /* blue heading */
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: #1d4ed8;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+a:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Forms */
+form {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+input, select, button {
+  padding: 10px 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus, button:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 5px rgba(37, 99, 235, 0.5);
+}
+
+/* Buttons */
+button {
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+button:hover {
+  background-color: #1e40af;
+  transform: translateY(-2px);
+}
+
+/* Lists */
+ul {
+  list-style-type: none;
+  padding: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+li {
+  background: #fff;
+  margin: 8px 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Add New Contact</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      color: #222;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2563eb;
+      margin-bottom: 30px;
+    }
+
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #1e293b;
+    }
+
+    input, textarea, select, button {
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    a.back-link {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #2563eb;
+      font-weight: bold;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    a.back-link:hover {
+      color: #1e40af;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>➕ Add New Contact</h1>
+  <form method="post" action="/contacts/add">
+    <label>Name:</label>
+    <input type="text" name="name" placeholder="Full Name" required>
+
+    <label>Company:</label>
+    <input type="text" name="company" value="Independent / Unknown" placeholder="Company Name">
+
+    <label>Email:</label>
+    <input type="email" name="email" placeholder="example@email.com">
+
+    <label>Phone:</label>
+    <input type="tel" name="phone" placeholder="+1-234-567-890">
+
+    <label>Notes:</label>
+    <textarea name="notes" rows="3" placeholder="Additional notes..."></textarea>
+
+    <label>Frequency (times per year):</label>
+    <input type="number" name="frequency" value="0" min="0">
+
+    <label>Last Contact Date:</label>
+    <input type="date" name="last_contact" value="{{ today }}">
+
+    <button type="submit">Add Contact</button>
+  </form>
+
+  <a href="/contacts" class="back-link">← Back to Contacts</a>
+</body>
+</html>

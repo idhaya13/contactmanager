@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Details - {{ contact.name }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8fafc;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #2563eb;
+      margin-bottom: 20px;
+    }
+
+    .contact-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .details {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      flex: 1 1 300px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .details p {
+      margin: 8px 0;
+    }
+
+    .chart-container {
+      width: 200px;
+      height: 200px;
+      flex-shrink: 0;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    a {
+      text-decoration: none;
+      color: #1d4ed8;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    #draftEmailBtn {
+      margin-top: 20px;
+      padding: 10px 15px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #draftEmailBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #draftEmailOutput {
+      width: 100%;
+      margin-top: 15px;
+      display: none;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    #emailInput {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>{{ contact.name }}</h1>
+  
+  <div class="contact-container">
+    <div class="details">
+      <p><strong>Company:</strong> {{ contact.company }}</p>
+      <p><strong>Email:</strong> {{ contact.email }}</p>
+      <p><strong>Phone:</strong> {{ contact.phone }}</p>
+      <p><strong>Notes:</strong> {{ contact.notes }}</p>
+      <p><strong>Frequency:</strong> {{ contact.frequency }}</p>
+      <p><strong>Last Contact:</strong> {{ contact.last_contact.strftime("%Y-%m-%d") }}</p>
+      <p><strong>Relationship Strength:</strong> {{ "%.2f"|format(contact.relationship) }}</p>
+      <p>{{ suggestion }}</p>
+
+      <!-- Draft Email Button / Input -->
+      {% if contact.email %}
+        <button id="draftEmailBtn">Draft Email</button>
+      {% else %}
+        <input type="email" id="emailInput" placeholder="Enter email first" required>
+        <button id="draftEmailBtn">Draft Email</button>
+      {% endif %}
+
+      <textarea id="draftEmailOutput" rows="8"></textarea>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="relationshipChart"></canvas>
+    </div>
+  </div>
+
+  <a href="/contacts">← Back to Contacts</a>
+
+  <script>
+    // Doughnut chart
+    const ctx = document.getElementById('relationshipChart').getContext('2d');
+    const data = {
+      labels: ['Strength', 'Remaining'],
+      datasets: [{
+        label: 'Relationship',
+        data: [{{ contact.relationship }}, {{ 1 - contact.relationship }}],
+        backgroundColor: ['#4CAF50', '#e0e0e0'],
+        borderWidth: 1
+      }]
+    };
+    const options = {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      cutout: '70%'
+    };
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: data,
+      options: options
+    });
+
+    // Draft email button functionality
+    document.getElementById("draftEmailBtn").addEventListener("click", async () => {
+        const btn = document.getElementById("draftEmailBtn");
+        btn.disabled = true;
+        btn.innerText = "Generating...";
+
+        let url = `/contacts/{{ contact.id }}/draft_email`;
+        const formData = new FormData();
+
+        {% if not contact.email %}
+          const emailValue = document.getElementById("emailInput").value.trim();
+          if(!emailValue){
+              alert("Please enter an email first.");
+              btn.disabled = false;
+              btn.innerText = "Draft Email";
+              return;
+          }
+          formData.append("email", emailValue);
+        {% endif %}
+
+        try {
+          const response = await fetch(url, { method: 'POST', body: formData });
+          const data = await response.json();
+          const output = document.getElementById("draftEmailOutput");
+          if(data.draft_email){
+              output.style.display = "block";
+              output.value = data.draft_email;
+          } else if(data.error){
+              alert("Error: " + data.error);
+          }
+        } catch (error) {
+          alert("Failed to generate draft email: " + error);
+        }
+
+        btn.disabled = false;
+        btn.innerText = "Draft Email";
+    });
+  </script>
+</body>
+</html>

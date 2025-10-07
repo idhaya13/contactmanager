@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>📇 Business Contact Manager</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1f2937;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2563eb;
+      margin-bottom: 25px;
+    }
+
+    .filter-form {
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .filter-form input, .filter-form select, .filter-form button {
+      padding: 8px 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .filter-form input:focus, .filter-form select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .filter-form button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .filter-form button:hover {
+      background-color: #1e40af;
+    }
+
+    .company-block {
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 15px 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .company-block h2 {
+      margin-top: 0;
+      color: #1e40af;
+      font-size: 1.3rem;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 5px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    li:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    li a {
+      font-weight: bold;
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    li a:hover {
+      text-decoration: underline;
+    }
+
+    li .email {
+      font-style: italic;
+      color: #6b7280;
+      margin-left: 8px;
+    }
+
+    li strong {
+      color: #ef4444; /* accent color for frequency and relationship */
+      margin-left: 4px;
+    }
+
+    p {
+      text-align: center;
+      font-style: italic;
+      color: #6b7280;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>All Contacts</h1>
+
+  <form method="get" class="filter-form">
+    <input 
+      type="text" 
+      name="search" 
+      placeholder="Search name or company" 
+      value="{{ search }}" 
+    />
+    <select name="months">
+      <option value="all" {% if months == "all" or not months %}selected{% endif %}>All</option>
+      <option value="1" {% if months == "1" %}selected{% endif %}>1 month</option>
+      <option value="3" {% if months == "3" %}selected{% endif %}>3 months</option>
+      <option value="6" {% if months == "6" %}selected{% endif %}>6 months</option>
+    </select>
+    <button type="submit">Filter</button>
+  </form>
+
+  {% if contacts_by_company %}
+    {% for company, members in contacts_by_company.items() %}
+      <section class="company-block">
+        <h2>🏢 {{ company }}</h2>
+        <ul>
+          {% for c in members %}
+            <li>
+              <div>
+                <a href="/contacts/{{ c.id }}">{{ c.name }}</a>
+                <span class="email">{{ c.email }}</span>
+              </div>
+              <div>
+                🔁 <strong>{{ c.frequency }}</strong>x |
+                ❤️ <strong>{{ "%.2f"|format(c.relationship) }}</strong>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endfor %}
+  {% else %}
+    <p>No contacts found for your filter/search.</p>
+  {% endif %}
+</body>
+</html>
