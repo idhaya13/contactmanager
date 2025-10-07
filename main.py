@@ -211,16 +211,25 @@ async def draft_email(contact_id: int, email: str = Form(None), db: Session = De
     return {"draft_email": draft_email_text}
 
 @app.get("/broadcast/{company}", response_class=HTMLResponse)
-async def broadcast(
-    request: Request,
-    company: str,
-    db: Session = Depends(get_db),
-):
-    # Fetch contacts for the specified company
+async def broadcast(request: Request, company: str, db: Session = Depends(get_db)):
+    # Fetch all contacts for this company
     contacts = db.query(Contact).filter(Contact.company == company).all()
-    for c in contacts:
-        c.relationship = relationship_score(c)
-    return templates.TemplateResponse(
-        "broadcast.html",
-        {"request": request, "company": company, "contacts": contacts},
-    )
+    return templates.TemplateResponse("broadcast.html", {
+        "request": request,
+        "company": company,
+        "contacts": contacts
+    })
+
+@app.post("/broadcast/send", response_class=JSONResponse)
+async def send_broadcast(data: dict, db: Session = Depends(get_db)):
+    ids = data.get("ids", [])
+    message = data.get("message", "")
+    if not ids or not message:
+        return {"success": False, "error": "No recipients or message"}
+    
+    # Normally, send the message via email/sms API
+    recipients = db.query(Contact).filter(Contact.id.in_(ids)).all()
+    for r in recipients:
+        print(f"Message sent to {r.name}: {message}")  # replace with real sending logic
+
+    return {"success": True}

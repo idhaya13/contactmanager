@@ -3,165 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📢 Broadcast to {{ company }}</title>
+    <title>Broadcast Message - {{ company }}</title>
     <style>
-        :root {
-            --bg-dark: #121212;
-            --bg-surface: #1e1e2d;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent: #8b5cf6;
-            --accent-hover: #7c3aed;
-            --border: #333;
-        }
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
+            background: #121212;
+            color: #e0e0e0;
             margin: 0;
             padding: 20px;
         }
+
         h1 {
+            color: #8b5cf6;
             text-align: center;
-            color: var(--accent);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-        .broadcast-form {
-            max-width: 700px;
+
+        .broadcast-container {
+            max-width: 900px;
             margin: 0 auto;
-            background: var(--bg-surface);
+            background: #1e1e2d;
             padding: 20px;
             border-radius: 12px;
-            border-left: 3px solid var(--accent);
         }
-        #checkboxContainer {
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            max-height: 200px;
-            overflow-y: auto;
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        select,
+        textarea {
             padding: 10px;
-            margin: 10px 0;
-            background: var(--bg-dark);
+            width: 100%;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
         }
-        .checkbox-item {
-            margin: 5px 0;
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            margin-top: 5px;
+        }
+
+        .members-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .member-item:last-child {
+            border-bottom: none;
+        }
+
+        .member-info {
             display: flex;
             align-items: center;
-        }
-        .checkbox-item input[type="checkbox"] {
-            margin-right: 10px;
-        }
-        #messageText {
-            width: 100%;
-            min-height: 150px;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            resize: vertical;
-            margin: 10px 0;
-        }
-        .template-selector select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid var(--border);
-            background: var(--bg-surface);
-            color: var(--text-primary);
-            margin: 10px 0;
-        }
-        .button-group {
-            display: flex;
-            justify-content: flex-end;
             gap: 10px;
-            margin-top: 20px;
         }
-        button {
+
+        .member-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
         }
-        .send-btn {
-            background-color: var(--accent);
+
+        .btn-primary {
+            background: #8b5cf6;
             color: white;
         }
-        .send-btn:hover {
-            background-color: var(--accent-hover);
+
+        .btn-primary:hover {
+            background: #7c3aed;
         }
-        .cancel-btn {
-            background-color: #f44336;
+
+        .btn-secondary {
+            background: #333;
             color: white;
+            margin-right: 10px;
         }
-        .cancel-btn:hover {
-            background-color: #d32f2f;
+
+        #selectAll {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .members-count {
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+        .success-message {
+            background: #eaffea;
+            color: #27ae60;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .error-message {
+            background: #ffeaea;
+            color: #d63031;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
         }
     </style>
 </head>
+
 <body>
-    <h1>📢 Broadcast to {{ company }}</h1>
-    <div class="broadcast-form">
-        <div>
-            <label>
-                <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
-                Select All Contacts
-            </label>
+    <h1>Broadcast Message - {{ company }}</h1>
+    <div class="broadcast-container">
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <div class="form-group">
+            <label>Recipients</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="selectAll" checked>
+                <label for="selectAll">Select All Contacts</label>
+                <span class="members-count">{{ contacts|length }} members</span>
+            </div>
         </div>
-        <div id="checkboxContainer">
-            {% if contacts %}
-                {% for c in contacts %}
-                    {% if c.email %}
-                        <div class="checkbox-item">
-                            <input type="checkbox" class="contact-checkbox" value="{{ c.email }}">
-                            <label>{{ c.name }} ({{ c.email }})</label>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                <p>No contacts with emails found for this company.</p>
-            {% endif %}
-        </div>
-        <div class="template-selector">
-            <label for="templateSelect">Select Message Template:</label>
-            <select id="templateSelect" onchange="loadTemplate()">
+
+        <div class="form-group">
+            <label for="messageTemplate">Select Message Template</label>
+            <select id="messageTemplate">
                 <option value="">Custom Message</option>
-                <option value="interview">Interview Schedule</option>
-                <option value="greetings">Greetings and Wishes</option>
-                <option value="meeting">Meeting Call</option>
+                <option value="welcome">Welcome Message</option>
+                <option value="meeting">Meeting Reminder</option>
+                <option value="update">Company Update</option>
+                <option value="holiday">Holiday Greeting</option>
             </select>
         </div>
-        <textarea id="messageText" placeholder="Type your message..."></textarea>
-        <div class="button-group">
-            <button class="send-btn" onclick="sendMessage()">Send</button>
-            <button class="cancel-btn" onclick="window.location.href='/contacts'">Cancel</button>
+
+        <div class="form-group">
+            <label for="customMessage">Message</label>
+            <textarea id="customMessage" placeholder="Type your message..."></textarea>
+        </div>
+
+        <div class="members-list" id="membersList">
+            {% for c in contacts %}
+            <div class="member-item">
+                <div class="member-info">
+                    <div class="member-avatar">
+                        {{ c.name.split(' ')[0][0] }}{{ c.name.split(' ')[-1][0] }}
+                    </div>
+                    <div>
+                        <div>{{ c.name }}</div>
+                        <div style="font-size: 12px; color: #aaa;">
+                            {{ c.role if c.role else 'No Role' }} • {{ c.department if c.department else 'No Dept' }}
+                        </div>
+                    </div>
+                </div>
+                <input type="checkbox" class="member-checkbox" data-id="{{ c.id }}" checked>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+            <button class="btn btn-primary" id="sendBtn">Send Broadcast</button>
         </div>
     </div>
+
     <script>
-        const templates = {
-            interview: `Subject: Interview Schedule\n\nDear [Name],\n\nWe are pleased to invite you for an interview for the [Position] role at {{ company }}. Please find the details below:\n\nDate: [Insert Date]\nTime: [Insert Time]\nLocation: [Insert Location or Video Conference Link]\n\nKindly confirm your availability.\n\nBest regards,\n[Your Name]`,
-            greetings: `Subject: Warm Wishes\n\nDear [Name],\n\nWishing you a wonderful [Occasion, e.g., Holiday Season]! Thank you for your continued support and collaboration with {{ company }}. We look forward to achieving great things together.\n\nWarm regards,\n[Your Name]`,
-            meeting: `Subject: Meeting Invitation\n\nDear [Name],\n\nYou are invited to a meeting to discuss [Topic] with {{ company }}. Please find the details below:\n\nDate: [Insert Date]\nTime: [Insert Time]\nLocation: [Insert Location or Video Conference Link]\n\nPlease confirm your attendance.\n\nBest regards,\n[Your Name]`
-        };
-        function loadTemplate() {
-            const select = document.getElementById('templateSelect');
-            const messageText = document.getElementById('messageText');
-            messageText.value = templates[select.value] || '';
-        }
-        function toggleSelectAll(master) {
-            document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = master.checked);
-        }
-        function sendMessage() {
-            const checked = Array.from(document.querySelectorAll('.contact-checkbox:checked')).map(cb => cb.value);
-            const msg = document.getElementById('messageText').value.trim();
-            if (!checked.length) return alert('Select at least one contact.');
-            if (!msg) return alert('Type a message.');
-            console.log('Sending to:', checked);
-            console.log('Message:', msg);
-            alert('Message sent successfully!');
-            window.location.href = '/contacts';
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAll = document.getElementById('selectAll');
+            const memberCheckboxes = document.querySelectorAll('.member-checkbox');
+            const messageTemplate = document.getElementById('messageTemplate');
+            const customMessage = document.getElementById('customMessage');
+            const sendBtn = document.getElementById('sendBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            selectAll.addEventListener('change', () => {
+                memberCheckboxes.forEach(cb => cb.checked = selectAll.checked);
+            });
+
+            memberCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const allChecked = Array.from(memberCheckboxes).every(c => c.checked);
+                    const noneChecked = Array.from(memberCheckboxes).every(c => !c.checked);
+                    selectAll.checked = allChecked;
+                    selectAll.indeterminate = !allChecked && !noneChecked;
+                });
+            });
+
+            messageTemplate.addEventListener('change', function() {
+                const templates = {
+                    welcome: "Welcome to our team! We're excited to have you on board.",
+                    meeting: "Reminder: Team meeting tomorrow at 10 AM.",
+                    update: "Important company update: Please check the latest announcements.",
+                    holiday: "Wishing you a wonderful holiday season!"
+                };
+                customMessage.value = templates[this.value] || '';
+            });
+
+            sendBtn.addEventListener('click', () => {
+                const selectedIds = Array.from(memberCheckboxes)
+                    .filter(c => c.checked)
+                    .map(c => c.dataset.id);
+                const message = customMessage.value.trim();
+
+                if (!message) return showError("Please enter a message.");
+                if (selectedIds.length === 0) return showError("Please select at least one recipient.");
+
+                fetch("/broadcast/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ids: selectedIds, message: message })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) showSuccess("Message sent successfully!");
+                })
+                .catch(err => showError("Failed to send message."));
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                if (confirm("Cancel broadcasting?")) {
+                    customMessage.value = '';
+                }
+            });
+
+            function showError(msg) {
+                errorMessage.textContent = msg;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+                setTimeout(() => errorMessage.style.display = 'none', 4000);
+            }
+
+            function showSuccess(msg) {
+                successMessage.textContent = msg;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                setTimeout(() => successMessage.style.display = 'none', 4000);
+            }
+        });
     </script>
 </body>
 </html>
+
