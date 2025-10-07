@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, Depends 
+from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -11,7 +11,6 @@ from google import genai  # Gemini client
 import os
 from google.genai import types
 
-
 app = FastAPI(title="Business AI Contact Manager")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -20,30 +19,14 @@ templates = Jinja2Templates(directory="templates")
 # -------------------------------
 # Gemini API key (freemium)
 # -------------------------------
-
 from dotenv import load_dotenv
-# Load variables from .env
 load_dotenv()
 
-# ✅ Preferred: read from GOOGLE_API_KEY environment variable
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-# ✅ Validate before initializing
 if not GOOGLE_API_KEY:
     raise ValueError("❌ GOOGLE_API_KEY environment variable not set. Please set it before running.")
 
-# ✅ Create the client
 client = genai.Client(api_key=GOOGLE_API_KEY)
-
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-
-response = client.models.generate_content(
-    model="gemini-2.0-flash-001",
-    contents="Write a 1-sentence greeting message to test Gemini API."
-)
-
-print(response.text)
-
 
 # -------------------------------
 # Dependency: DB session
@@ -87,7 +70,6 @@ def group_by_company(contact_list):
 # -------------------------------
 # Helper: Generate AI draft email via Gemini
 # -------------------------------
-# replacement function
 def generate_email_ai(contact: Contact) -> str:
     prompt_text = f"""
 Write a concise, professional, friendly follow-up email to {contact.name}.
@@ -96,9 +78,7 @@ Notes: {contact.notes if contact.notes else "No specific notes available."}
 Last contact: {contact.last_contact.strftime('%Y-%m-%d')}
 Relationship score: {relationship_score(contact)}
 """
-
     try:
-        # Build a typed config object using the SDK's types
         gen_config = types.GenerateContentConfig(
             temperature=0.7,
             top_p=0.95,
@@ -106,36 +86,21 @@ Relationship score: {relationship_score(contact)}
             candidate_count=1,
             max_output_tokens=200,
         )
-
-        # Call the model with the typed config
         response = client.models.generate_content(
-            model="gemini-2.0-flash-001",   # use a model name available to you
+            model="gemini-2.0-flash-001",
             contents=prompt_text,
             config=gen_config,
         )
-
-        # Response can appear in different shapes; handle them defensively:
-        # 1) response.text (common and easiest)
         if getattr(response, "text", None):
             return response.text.strip()
-
-        # 2) response.candidates -> candidate.content.parts[0].text
         candidates = getattr(response, "candidates", None)
         if candidates:
             try:
-                # candidate.content.parts is a list of Part objects
-                cand = candidates[0]
-                text = cand.content.parts[0].text
-                return text.strip()
+                return candidates[0].content.parts[0].text.strip()
             except Exception:
-                # fallback to a string representation of the candidate
                 return str(candidates[0])
-
-        # 3) if nothing present, show a helpful fallback message
         return "⚠️ AI returned no text output."
-
     except Exception as e:
-        # include the exception text to help debugging
         return f"⚠️ AI generation failed: {str(e)}\n\nFallback message:\nHi {contact.name}, just checking in!"
 
 # -------------------------------
@@ -166,6 +131,21 @@ async def contact_list(
     return templates.TemplateResponse(
         "contact_list.html",
         {"request": request, "contacts_by_company": grouped, "months": months, "search": search},
+    )
+
+@app.get("/broadcast/{company}", response_class=HTMLResponse)
+async def broadcast(
+    request: Request,
+    company: str,
+    db: Session = Depends(get_db),
+):
+    # Fetch contacts for the specified company
+    contacts = db.query(Contact).filter(Contact.company == company).all()
+    for c in contacts:
+        c.relationship = relationship_score(c)
+    return templates.TemplateResponse(
+        "broadcast.html",
+        {"request": request, "company": company, "contacts": contacts},
     )
 
 @app.get("/contacts/add", response_class=HTMLResponse)
@@ -220,18 +200,27 @@ async def contact_detail(
         {"request": request, "contact": contact, "suggestion": suggestion},
     )
 
-# -------------------------------
-# AI Email Draft Route
-# -------------------------------
 @app.post("/contacts/{contact_id}/draft_email", response_class=JSONResponse)
 async def draft_email(contact_id: int, email: str = Form(None), db: Session = Depends(get_db)):
     contact = db.query(Contact).filter(Contact.id == contact_id).first()
     if not contact:
         return JSONResponse({"error": "Contact not found"}, status_code=404)
-
-    # Ensure email exists
     if not email and not contact.email:
         return JSONResponse({"error": "No email provided. Please enter an email first."}, status_code=400)
-
     draft_email_text = generate_email_ai(contact)
     return {"draft_email": draft_email_text}
+
+@app.get("/broadcast/{company}", response_class=HTMLResponse)
+async def broadcast(
+    request: Request,
+    company: str,
+    db: Session = Depends(get_db),
+):
+    # Fetch contacts for the specified company
+    contacts = db.query(Contact).filter(Contact.company == company).all()
+    for c in contacts:
+        c.relationship = relationship_score(c)
+    return templates.TemplateResponse(
+        "broadcast.html",
+        {"request": request, "company": company, "contacts": contacts},
+    )

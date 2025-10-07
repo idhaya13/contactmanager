@@ -1,255 +1,178 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>📇 Business Contact Manager</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    :root {
-      --bg-dark: #121212;
-      --bg-surface: #1e1e2d;
-      --text-primary: #e0e0e0;
-      --text-secondary: #a0a0a0;
-      --accent: #8b5cf6;
-      --accent-hover: #7c3aed;
-      --border: #333;
-      --focus-glow: rgba(139, 92, 246, 0.3);
-    }
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: var(--bg-dark);
-      color: var(--text-primary);
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: var(--accent);
-      margin-bottom: 25px;
-      animation: fadeIn 0.6s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .filter-form {
-      max-width: 600px;
-      margin: 0 auto 30px auto;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-    .filter-form input, .filter-form select, .filter-form button {
-      padding: 8px 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--bg-surface);
-      color: var(--text-primary);
-      outline: none;
-      transition: border 0.2s, box-shadow 0.2s;
-    }
-    .filter-form input:focus, .filter-form select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--focus-glow);
-    }
-    .filter-form button {
-      background-color: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s, transform 0.1s;
-    }
-    .filter-form button:hover {
-      background-color: var(--accent-hover);
-      transform: translateY(-1px);
-    }
-    .company-block {
-      max-width: 700px;
-      margin: 20px auto;
-      padding: 15px 20px;
-      background: var(--bg-surface);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      border-left: 3px solid var(--accent);
-      animation: slideUp 0.4s ease-out;
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .company-block h2 {
-      margin-top: 0;
-      color: var(--accent);
-      font-size: 1.3rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0 0;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(30, 30, 45, 0.6);
-      margin-bottom: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      transition: transform 0.15s, box-shadow 0.15s;
-      border-left: 2px solid var(--accent);
-    }
-    li:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      background: rgba(30, 30, 45, 0.8);
-    }
-    li a {
-      font-weight: bold;
-      color: var(--accent);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    li a:hover {
-      color: white;
-      text-decoration: underline;
-    }
-    li .email {
-      font-style: italic;
-      color: var(--text-secondary);
-      margin-left: 8px;
-    }
-    li strong {
-      color: #f87171; /* soft red for frequency and relationship */
-      margin-left: 4px;
-    }
-    p {
-      text-align: center;
-      font-style: italic;
-      color: var(--text-secondary);
-      margin-top: 40px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>📇 Business Contact Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-surface: #1e1e2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --border: #333;
+            --focus-glow: rgba(139, 92, 246, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent);
+            margin-bottom: 25px;
+        }
+
+        .filter-form {
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .filter-form input,
+        .filter-form select,
+        .filter-form button {
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .filter-form button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .filter-form button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .company-block {
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 15px 20px;
+            background: var(--bg-surface);
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .company-block h2 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--accent);
+            font-size: 1.3rem;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 30, 45, 0.6);
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border-left: 2px solid var(--accent);
+        }
+
+        li a {
+            font-weight: bold;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        li a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        li .email {
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        li strong {
+            color: #f87171;
+            margin-left: 4px;
+        }
+
+        .broadcast-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .broadcast-btn:hover {
+            background-color: var(--accent-hover);
+        }
+    </style>
 </head>
 <body>
-  <h1>All Contacts</h1>
-  <form method="get" class="filter-form">
-    <input
-      type="text"
-      name="search"
-      placeholder="Search name or company"
-      value="{{ search }}"
-    />
-    <select name="months">
-      <option value="all" {% if months == "all" or not months %}selected{% endif %}>All</option>
-      <option value="1" {% if months == "1" %}selected{% endif %}>1 month</option>
-      <option value="3" {% if months == "3" %}selected{% endif %}>3 months</option>
-      <option value="6" {% if months == "6" %}selected{% endif %}>6 months</option>
-    </select>
-    <button type="submit">Filter</button>
-  </form>
-  {% if contacts_by_company %}
-    {% for company, members in contacts_by_company.items() %}
-      <section class="company-block">
-        <h2>🏢 {{ company }}</h2>
-        <ul>
-          {% for c in members %}
-            <li>
-              <div>
-                <a href="/contacts/{{ c.id }}">{{ c.name }}</a>
-                <span class="email">{{ c.email }}</span>
-              </div>
-              <div>
-                🔁 <strong>{{ c.frequency }}</strong>x |
-                ❤️ <strong>{{ "%.2f"|format(c.relationship) }}</strong>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      </section>
-    {% endfor %}
-  </div>
+    <h1>All Contacts</h1>
 
-</section>
-{% endfor %}
+    <form class="filter-form" method="get" action="/contacts">
+        <input type="text" name="search" placeholder="Search name or company" value="{{ search }}">
+        <select name="months">
+            <option value="all" {% if months == "all" %}selected{% endif %}>All</option>
+            <option value="1" {% if months == "1" %}selected{% endif %}>1 month</option>
+            <option value="3" {% if months == "3" %}selected{% endif %}>3 months</option>
+            <option value="6" {% if months == "6" %}selected{% endif %}>6 months</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
 
-<!-- Message Panel Modal -->
-<div id="messagePanel" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
-background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.3); max-width:500px; width:90%; z-index:1000;">
-  <h3 id="panelCompanyName"></h3>
-  <form id="messageForm">
-    <div style="margin-bottom:10px;">
-      <label><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"> Select All</label>
-    </div>
-    <div id="checkboxContainer" style="max-height:200px; overflow-y:auto; margin-bottom:10px; border:1px solid #ddd; padding:5px; border-radius:5px;"></div>
-    <textarea id="messageText" rows="4" placeholder="Type your message here..." style="width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;"></textarea>
-    <div style="text-align:right;">
-      <button type="button" onclick="sendMessage()" style="padding:8px 15px; margin-right:5px; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer;">Send</button>
-      <button type="button" onclick="closeMessagePanel()" style="padding:8px 15px; background:#f44336; color:white; border:none; border-radius:5px; cursor:pointer;">Cancel</button>
-    </div>
-  </form>
-</div>
-
-<!-- Modal background overlay -->
-<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:900;" onclick="closeMessagePanel()"></div>
-
-<script>
-function openMessagePanel(company) {
-  const panel = document.getElementById('messagePanel');
-  const overlay = document.getElementById('modalOverlay');
-  const container = document.getElementById('checkboxContainer');
-  const messageText = document.getElementById('messageText');
-  const selectAll = document.getElementById('selectAll');
-
-  document.getElementById('panelCompanyName').innerText = "Send message to " + company;
-  container.innerHTML = '';
-  messageText.value = '';
-  selectAll.checked = false;
-
-  // Get pre-rendered checkboxes for this company
-  const checkboxDiv = document.getElementById('checkboxes-' + company.replace(/ /g, '_'));
-  if (checkboxDiv) {
-    container.innerHTML = checkboxDiv.innerHTML;
-  } else {
-    container.innerHTML = '<em>No contacts found for this company.</em>';
-  }
-
-  panel.style.display = 'block';
-  overlay.style.display = 'block';
-}
-
-function closeMessagePanel() {
-  document.getElementById('messagePanel').style.display = 'none';
-  document.getElementById('modalOverlay').style.display = 'none';
-}
-
-function toggleSelectAll(master) {
-  const checkboxes = document.querySelectorAll('#checkboxContainer input[type=checkbox]');
-  checkboxes.forEach(cb => cb.checked = master.checked);
-}
-
-function sendMessage() {
-  const checkedContacts = Array.from(document.querySelectorAll('#checkboxContainer input[type=checkbox]:checked'))
-                               .map(cb => cb.value);
-  const message = document.getElementById('messageText').value.trim();
-
-  if (checkedContacts.length === 0) {
-    alert('Please select at least one contact.');
-    return;
-  }
-  if (!message) {
-    alert('Please type a message.');
-    return;
-  }
-
-  // Replace with your backend API call
-  console.log('Sending message to:', checkedContacts);
-  console.log('Message:', message);
-
-  alert('Message sent successfully!');
-  closeMessagePanel();
-}
-</script>
+    {% if contacts_by_company %}
+        {% for company, members in contacts_by_company.items() %}
+            <div class="company-block">
+                <h2>
+                    🏢 {{ company }}
+                    <a href="/broadcast/{{ company|urlencode }}" class="broadcast-btn">🔊 Broadcast</a>
+                </h2>
+                <ul>
+                    {% for c in members %}
+                        <li>
+                            <div>
+                                <a href="/contacts/{{ c.id }}">{{ c.name }}</a>
+                                {% if c.email %}
+                                    <span class="email">({{ c.email }})</span>
+                                {% endif %}
+                            </div>
+                            <div>🔁 <strong>{{ c.frequency }}</strong>x | ❤ <strong>{{ "%.2f"|format(c.relationship) }}</strong></div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center;">No contacts found.</p>
+    {% endif %}
+</body>
+</html>

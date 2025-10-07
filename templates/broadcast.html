@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📢 Broadcast to {{ company }}</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-surface: #1e1e2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --border: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--accent);
+            margin-bottom: 25px;
+        }
+        .broadcast-form {
+            max-width: 700px;
+            margin: 0 auto;
+            background: var(--bg-surface);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+        }
+        #checkboxContainer {
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            margin: 10px 0;
+            background: var(--bg-dark);
+        }
+        .checkbox-item {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        #messageText {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            resize: vertical;
+            margin: 10px 0;
+        }
+        .template-selector select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            margin: 10px 0;
+        }
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .send-btn {
+            background-color: var(--accent);
+            color: white;
+        }
+        .send-btn:hover {
+            background-color: var(--accent-hover);
+        }
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .cancel-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <h1>📢 Broadcast to {{ company }}</h1>
+    <div class="broadcast-form">
+        <div>
+            <label>
+                <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+                Select All Contacts
+            </label>
+        </div>
+        <div id="checkboxContainer">
+            {% if contacts %}
+                {% for c in contacts %}
+                    {% if c.email %}
+                        <div class="checkbox-item">
+                            <input type="checkbox" class="contact-checkbox" value="{{ c.email }}">
+                            <label>{{ c.name }} ({{ c.email }})</label>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <p>No contacts with emails found for this company.</p>
+            {% endif %}
+        </div>
+        <div class="template-selector">
+            <label for="templateSelect">Select Message Template:</label>
+            <select id="templateSelect" onchange="loadTemplate()">
+                <option value="">Custom Message</option>
+                <option value="interview">Interview Schedule</option>
+                <option value="greetings">Greetings and Wishes</option>
+                <option value="meeting">Meeting Call</option>
+            </select>
+        </div>
+        <textarea id="messageText" placeholder="Type your message..."></textarea>
+        <div class="button-group">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+            <button class="cancel-btn" onclick="window.location.href='/contacts'">Cancel</button>
+        </div>
+    </div>
+    <script>
+        const templates = {
+            interview: `Subject: Interview Schedule\n\nDear [Name],\n\nWe are pleased to invite you for an interview for the [Position] role at {{ company }}. Please find the details below:\n\nDate: [Insert Date]\nTime: [Insert Time]\nLocation: [Insert Location or Video Conference Link]\n\nKindly confirm your availability.\n\nBest regards,\n[Your Name]`,
+            greetings: `Subject: Warm Wishes\n\nDear [Name],\n\nWishing you a wonderful [Occasion, e.g., Holiday Season]! Thank you for your continued support and collaboration with {{ company }}. We look forward to achieving great things together.\n\nWarm regards,\n[Your Name]`,
+            meeting: `Subject: Meeting Invitation\n\nDear [Name],\n\nYou are invited to a meeting to discuss [Topic] with {{ company }}. Please find the details below:\n\nDate: [Insert Date]\nTime: [Insert Time]\nLocation: [Insert Location or Video Conference Link]\n\nPlease confirm your attendance.\n\nBest regards,\n[Your Name]`
+        };
+        function loadTemplate() {
+            const select = document.getElementById('templateSelect');
+            const messageText = document.getElementById('messageText');
+            messageText.value = templates[select.value] || '';
+        }
+        function toggleSelectAll(master) {
+            document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = master.checked);
+        }
+        function sendMessage() {
+            const checked = Array.from(document.querySelectorAll('.contact-checkbox:checked')).map(cb => cb.value);
+            const msg = document.getElementById('messageText').value.trim();
+            if (!checked.length) return alert('Select at least one contact.');
+            if (!msg) return alert('Type a message.');
+            console.log('Sending to:', checked);
+            console.log('Message:', msg);
+            alert('Message sent successfully!');
+            window.location.href = '/contacts';
+        }
+    </script>
+</body>
+</html>
