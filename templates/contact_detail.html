@@ -4,183 +4,442 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact Details - {{ contact.name }}</title>
-  <link rel="stylesheet" href="/static/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    :root {
+      --bg-dark: #121212;
+      --bg-surface: #1e1e2d;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --accent: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --border: #333;
+      --focus-glow: rgba(139, 92, 246, 0.3);
+    }
+    /* Reset defaults */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f8fafc;
-      padding: 20px;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      padding: 0;
+      position: relative;
+      overflow-y: auto;
+      min-height: 100vh;
+      padding-top: 100px; /* Add space for the fixed navbar */
     }
-
+    /* Main content container */
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      width: 100%;
+    }
+    /* Infinite falling particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+    @keyframes fall {
+      0% {
+        transform: translateY(-10px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.8;
+      }
+      90% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(105vh);
+        opacity: 0;
+      }
+    }
     h1 {
-      color: #2563eb;
+      color: var(--accent);
       margin-bottom: 20px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
     }
-
     .contact-container {
       display: flex;
       align-items: flex-start;
       gap: 40px;
       flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
     }
-
     .details {
-      background: #fff;
+      position: relative;
+      background: var(--bg-surface);
       padding: 20px;
       border-radius: 10px;
       flex: 1 1 300px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      color: var(--text-primary);
     }
-
     .details p {
       margin: 8px 0;
+      color: var(--text-primary);
     }
-
     .chart-container {
       width: 200px;
       height: 200px;
       flex-shrink: 0;
-      background: #fff;
+      background: var(--bg-surface);
       padding: 15px;
       border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 1;
     }
-
-    a {
+    a.back-link {
       text-decoration: none;
-      color: #1d4ed8;
+      color: var(--accent);
       display: inline-block;
       margin-top: 20px;
+      position: relative;
+      z-index: 1;
     }
-
     #draftEmailBtn {
       margin-top: 20px;
       padding: 10px 15px;
-      background-color: #2563eb;
+      background-color: var(--accent);
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      position: relative;
+      z-index: 1;
     }
-
     #draftEmailBtn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-
     #draftEmailOutput {
       width: 100%;
       margin-top: 15px;
       display: none;
       padding: 10px;
       border-radius: 6px;
-      border: 1px solid #cbd5e1;
+      border: 1px solid var(--border);
       font-family: monospace;
       white-space: pre-wrap;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      position: relative;
+      z-index: 1;
     }
-
     #emailInput {
       width: 100%;
       padding: 8px;
       border-radius: 6px;
-      border: 1px solid #cbd5e1;
+      border: 1px solid var(--border);
       margin-top: 10px;
       font-size: 16px;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      position: relative;
+      z-index: 1;
+    }
+    .top-right-buttons {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      gap: 10px;
+    }
+    .top-right-buttons button {
+      padding: 6px 12px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #editBtn {
+      background-color: #2563eb;
+      color: white;
+    }
+    #deleteBtn {
+      background-color: #dc2626;
+      color: white;
+    }
+    .top-right-buttons button:hover {
+      opacity: 0.85;
+    }
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: var(--bg-surface);
+      padding: 25px;
+      border-radius: 10px;
+      width: 400px;
+      position: relative;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      color: var(--text-primary);
+    }
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-dark);
+      color: var(--text-primary);
+    }
+    .modal-buttons {
+      text-align: right;
+      margin-top: 15px;
+    }
+    .modal-buttons button {
+      padding: 8px 14px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .save-btn {
+      background: #16a34a;
+      color: white;
+    }
+    .discard-btn {
+      background: #dc2626;
+      color: white;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--text-primary);
     }
   </style>
 </head>
 <body>
-  <h1>{{ contact.name }}</h1>
-  
-  <div class="contact-container">
-    <div class="details">
-      <p><strong>Company:</strong> {{ contact.company }}</p>
-      <p><strong>Email:</strong> {{ contact.email }}</p>
-      <p><strong>Phone:</strong> {{ contact.phone }}</p>
-      <p><strong>Notes:</strong> {{ contact.notes }}</p>
-      <p><strong>Frequency:</strong> {{ contact.frequency }}</p>
-      <p><strong>Last Contact:</strong> {{ contact.last_contact.strftime("%Y-%m-%d") }}</p>
-      <p><strong>Relationship Strength:</strong> {{ "%.2f"|format(contact.relationship) }}</p>
-      <p>{{ suggestion }}</p>
+  {% include 'navbar.html' %}
+  <div class="particles" id="particles"></div>
 
-      <!-- Draft Email Button / Input -->
-      {% if contact.email %}
+  <div class="main-container">
+    <h1>{{ contact.name }}</h1>
+    <div class="contact-container">
+      <div class="details">
+        <!-- Edit/Delete Buttons -->
+        <div class="top-right-buttons">
+          <button id="editBtn">Edit</button>
+          <button id="deleteBtn">Delete</button>
+        </div>
+        <p><strong>Company:</strong> {{ contact.company }}</p>
+        <p><strong>Email:</strong> {{ contact.email }}</p>
+        <p><strong>Phone:</strong> {{ contact.phone }}</p>
+        <p><strong>Notes:</strong> {{ contact.notes }}</p>
+        <p><strong>Frequency:</strong> {{ contact.frequency }}</p>
+        <p><strong>Last Contact:</strong> {{ contact.last_contact.strftime("%Y-%m-%d") }}</p>
+        <p><strong>Relationship Strength:</strong> {{ "%.2f"|format(contact.relationship) }}</p>
+        <p>{{ suggestion }}</p>
+        <input type="email" id="emailInput" placeholder="Enter email first" value="{{ contact.email }}">
         <button id="draftEmailBtn">Draft Email</button>
-      {% else %}
-        <input type="email" id="emailInput" placeholder="Enter email first" required>
-        <button id="draftEmailBtn">Draft Email</button>
-      {% endif %}
-
-      <textarea id="draftEmailOutput" rows="8"></textarea>
+        <textarea id="draftEmailOutput" rows="8"></textarea>
+      </div>
+      <div class="chart-container">
+        <canvas id="relationshipChart"></canvas>
+      </div>
     </div>
+    <a href="/contacts" class="back-link">← Back to Contacts</a>
+  </div>
 
-    <div class="chart-container">
-      <canvas id="relationshipChart"></canvas>
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeModal">&times;</button>
+      <h3>Edit Contact</h3>
+      <input type="text" id="companyInput" placeholder="Company" value="{{ contact.company }}">
+      <input type="email" id="emailEditInput" placeholder="Email" value="{{ contact.email }}">
+      <input type="text" id="phoneInput" placeholder="Phone" value="{{ contact.phone }}">
+      <textarea id="notesInput" rows="4" placeholder="Notes">{{ contact.notes }}</textarea>
+      <input type="number" id="freqInput" placeholder="Frequency" value="{{ contact.frequency }}">
+      <input type="date" id="lastContactInput" value="{{ contact.last_contact.strftime('%Y-%m-%d') }}">
+      <div class="modal-buttons">
+        <button class="discard-btn" id="discardBtn">Discard</button>
+        <button class="save-btn" id="saveBtn">Save</button>
+      </div>
     </div>
   </div>
 
-  <a href="/contacts">← Back to Contacts</a>
-
   <script>
-    // Doughnut chart
-    const ctx = document.getElementById('relationshipChart').getContext('2d');
-    const data = {
-      labels: ['Strength', 'Remaining'],
-      datasets: [{
-        label: 'Relationship',
-        data: [{{ contact.relationship }}, {{ 1 - contact.relationship }}],
-        backgroundColor: ['#4CAF50', '#e0e0e0'],
-        borderWidth: 1
-      }]
-    };
-    const options = {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      cutout: '70%'
-    };
-    new Chart(ctx, {
+    // Particles
+    const particlesContainer = document.getElementById('particles');
+    const particleCount = 50;
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.left = Math.random() * 100 + 'vw';
+      particle.style.animationDuration = 3 + Math.random() * 7 + 's';
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      particlesContainer.appendChild(particle);
+    }
+
+    // Chart
+    new Chart(document.getElementById('relationshipChart'), {
       type: 'doughnut',
-      data: data,
-      options: options
+      data: {
+        labels: ['Strength', 'Remaining'],
+        datasets: [{
+          data: [{{ contact.relationship }}, {{ 1 - contact.relationship }}],
+          backgroundColor: ['#4CAF50', '#e0e0e0'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        cutout: '70%',
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
     });
 
-    // Draft email button functionality
-    document.getElementById("draftEmailBtn").addEventListener("click", async () => {
-        const btn = document.getElementById("draftEmailBtn");
-        btn.disabled = true;
-        btn.innerText = "Generating...";
+    // Modal behavior
+    const editBtn = document.getElementById("editBtn");
+    const modal = document.getElementById("editModal");
+    const closeModal = document.getElementById("closeModal");
+    const discardBtn = document.getElementById("discardBtn");
+    const saveBtn = document.getElementById("saveBtn");
 
-        let url = `/contacts/{{ contact.id }}/draft_email`;
-        const formData = new FormData();
+    editBtn.addEventListener("click", () => modal.style.display = "flex");
+    closeModal.addEventListener("click", () => modal.style.display = "none");
+    discardBtn.addEventListener("click", () => modal.style.display = "none");
 
-        {% if not contact.email %}
-          const emailValue = document.getElementById("emailInput").value.trim();
-          if(!emailValue){
-              alert("Please enter an email first.");
-              btn.disabled = false;
-              btn.innerText = "Draft Email";
-              return;
-          }
-          formData.append("email", emailValue);
-        {% endif %}
+    saveBtn.addEventListener("click", async () => {
+      const contactId = {{ contact.id }};
+      const payload = new FormData();
+      payload.append("company", document.getElementById("companyInput").value);
+      payload.append("email", document.getElementById("emailEditInput").value);
+      payload.append("phone", document.getElementById("phoneInput").value);
+      payload.append("notes", document.getElementById("notesInput").value);
+      payload.append("frequency", document.getElementById("freqInput").value);
+      payload.append("last_contact", document.getElementById("lastContactInput").value);
 
-        try {
-          const response = await fetch(url, { method: 'POST', body: formData });
+      try {
+        const response = await fetch(`/contacts/${contactId}/edit`, {
+          method: "POST",
+          body: payload
+        });
+
+        if (response.ok) {
+          alert("Contact updated successfully!");
+          location.reload();
+        } else {
           const data = await response.json();
-          const output = document.getElementById("draftEmailOutput");
-          if(data.draft_email){
-              output.style.display = "block";
-              output.value = data.draft_email;
-          } else if(data.error){
-              alert("Error: " + data.error);
-          }
-        } catch (error) {
-          alert("Failed to generate draft email: " + error);
+          alert("Error: " + data.error);
         }
+      } catch (err) {
+        alert("Failed to update contact: " + err);
+      }
+    });
 
+    // Delete button
+    const deleteBtn = document.getElementById("deleteBtn");
+    deleteBtn.addEventListener("click", async () => {
+      if (!confirm("Are you sure you want to delete this contact?")) return;
+      const contactId = {{ contact.id }};
+
+      try {
+        const response = await fetch(`/contacts/${contactId}/delete`, {
+          method: "DELETE"
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert("Contact deleted successfully!");
+          window.location.href = "/contacts";
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (err) {
+        alert("Failed to delete contact: " + err);
+      }
+    });
+
+    // Draft Email button
+    document.getElementById("draftEmailBtn").addEventListener("click", async () => {
+      const btn = document.getElementById("draftEmailBtn");
+      btn.disabled = true;
+      btn.innerText = "Generating...";
+
+      const formData = new FormData();
+      const emailValue = document.getElementById("emailInput").value.trim();
+
+      if (!emailValue) {
+        alert("Please enter an email first.");
         btn.disabled = false;
         btn.innerText = "Draft Email";
+        return;
+      }
+
+      formData.append("email", emailValue);
+
+      try {
+        const response = await fetch(`/contacts/{{ contact.id }}/draft_email`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        const output = document.getElementById("draftEmailOutput");
+
+        if (data.draft_email) {
+          output.style.display = "block";
+          output.value = data.draft_email;
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (error) {
+        alert("Failed to generate draft email: " + error);
+      }
+
+      btn.disabled = false;
+      btn.innerText = "Draft Email";
     });
   </script>
 </body>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - {{ user.name }}</title>
+  <style>
+    :root {
+      --bg-dark: #121212;
+      --bg-surface: #1e1e2d;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --accent: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --border: #333;
+      --focus-glow: rgba(139, 92, 246, 0.3);
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 20px;
+      position: relative;
+      overflow-y: auto;
+    }
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+    @keyframes fall {
+      0% { transform: translateY(-10px); opacity: 0; }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.8; }
+      100% { transform: translateY(105vh); opacity: 0; }
+    }
+    .profile-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+    h1 {
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    label {
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+    input, textarea {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-size: 16px;
+    }
+    button {
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: var(--accent-hover);
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  {% include 'navbar.html' %}
+  <div class="particles" id="particles"></div>
+  <div class="profile-container">
+    <h1>👤 Profile</h1>
+    <form method="post" action="/profile/update">
+      <div>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ user.name }}" required>
+      </div>
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required>
+      </div>
+      <div>
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" name="phone" value="{{ user.phone }}">
+      </div>
+      <div>
+        <label for="company">Company:</label>
+        <input type="text" id="company" name="company" value="{{ user.company }}">
+      </div>
+      <div>
+        <label for="role">Role:</label>
+        <input type="text" id="role" name="role" value="{{ user.role }}">
+      </div>
+      <div>
+        <label for="notes">Notes:</label>
+        <textarea id="notes" name="notes" rows="4">{{ user.notes }}</textarea>
+      </div>
+      <button type="submit">Save Changes</button>
+    </form>
+    <a href="/contacts">← Back to Contacts</a>
+  </div>
+  <script>
+    const particlesContainer = document.getElementById('particles');
+    const particleCount = 50;
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.left = Math.random() * 100 + 'vw';
+      particle.style.animationDuration = 3 + Math.random() * 7 + 's';
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      particlesContainer.appendChild(particle);
+    }
+  </script>
+</body>
+</html>

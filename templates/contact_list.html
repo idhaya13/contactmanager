@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>📇 Business Contact Manager</title>
-    <link rel="stylesheet" href="/static/style.css">
     <style>
         :root {
             --bg-dark: #121212;
@@ -16,12 +15,63 @@
             --focus-glow: rgba(139, 92, 246, 0.3);
         }
 
+        /* Reset defaults */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
             background: var(--bg-dark);
             color: var(--text-primary);
-            margin: 0;
             padding: 20px;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        /* Infinite falling particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(105vh);
+                opacity: 0;
+            }
         }
 
         h1 {
@@ -69,6 +119,8 @@
             background: var(--bg-surface);
             border-radius: 12px;
             border-left: 3px solid var(--accent);
+            position: relative;
+            z-index: 1;
         }
 
         .company-block h2 {
@@ -136,8 +188,9 @@
     </style>
 </head>
 <body>
+  {% include 'navbar.html' %}
+    <div class="particles" id="particles"></div>
     <h1>All Contacts</h1>
-
     <form class="filter-form" method="get" action="/contacts">
         <input type="text" name="search" placeholder="Search name or company" value="{{ search }}">
         <select name="months">
@@ -148,7 +201,6 @@
         </select>
         <button type="submit">Filter</button>
     </form>
-
     {% if contacts_by_company %}
         {% for company, members in contacts_by_company.items() %}
             <div class="company-block">
@@ -174,5 +226,19 @@
     {% else %}
         <p style="text-align: center;">No contacts found.</p>
     {% endif %}
+
+    <script>
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 50;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.animationDuration = 3 + Math.random() * 7 + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particlesContainer.appendChild(particle);
+        }
+    </script>
 </body>
 </html>
